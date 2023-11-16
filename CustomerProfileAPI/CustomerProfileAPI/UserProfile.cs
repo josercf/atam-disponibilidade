@@ -7,7 +7,7 @@ public class UserProfile
     public int Avaliacao { get; set; }
 }
 
-public class UserRationg
+public class UserRating
 {
     public int userId { get; set; }
     public int rating { get; set; }

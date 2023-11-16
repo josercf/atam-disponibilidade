@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CustomerProfileAPI;
+using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
@@ -12,21 +13,27 @@ var app = builder.Build();
 app.MapGet("/", async () =>
 {
 
-    var userProfile = new UserProfile() {Nome = "José", Endereco = "Rua 1", Avaliacao = 5};
+    var userProfile = new UserProfile() {Nome = "José", Endereco = "Rua 1", Avaliacao = -1};
         
+    var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(2));
+
+    var retryPolicy = Policy.Handle<HttpRequestException>()
+        .Or<TaskCanceledException>()
+        .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
     using var client = new HttpClient();
 
-    // URL que aponta para a API Node.js
     string url = "http://localhost:3000/get-rating/1";
 
-    // Envia a solicitação GET assíncrona
-    HttpResponseMessage response = await client.GetAsync(url);
+    HttpResponseMessage response = await retryPolicy.ExecuteAsync(async () =>
+        await timeoutPolicy.ExecuteAsync(async token =>
+            await client.GetAsync(url), CancellationToken.None));
 
-    // Recebe o corpo da resposta e retorna
     if (response.IsSuccessStatusCode)
     {
         var responseString = await response.Content.ReadAsStringAsync();
-        var userRating = JsonSerializer.Deserialize<UserRationg>(responseString);
+        var userRating = JsonSerializer.Deserialize<UserRating>(responseString);
         userProfile.Avaliacao = userRating.rating;
     }
     else
