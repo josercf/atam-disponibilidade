@@ -17,7 +17,7 @@ app.MapGet("/", async () =>
     using var client = new HttpClient();
 
     // URL que aponta para a API Node.js
-    string url = "http://localhost:3000/get-rating/1";
+    string url = "http://node-api:3000/get-rating/1";
 
     // Envia a solicitação GET assíncrona
     HttpResponseMessage response = await client.GetAsync(url);
