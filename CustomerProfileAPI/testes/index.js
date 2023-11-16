@@ -7,7 +7,7 @@ export let options = {
 };
 
 export default function() {
-    let res = http.get('http://localhost:5000');
+    let res = http.get('http://localhost:80');
     console.log(`Response time was ${res.timings.duration} ms`);
     sleep(1);
 }
