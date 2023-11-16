@@ -1,0 +1,17 @@
+version: '3'
+services:
+    node-api:
+        build: 
+          context: ./UserRatingAPI
+          dockerfile: Dockerfile
+        ports:
+          - '3000:3000'
+        restart: always
+
+    csharp-api:
+        build: 
+          context: ./CustomerProfileAPI
+          dockerfile: Dockerfile
+        ports:
+          - '5001:5000'
+        restart: always
